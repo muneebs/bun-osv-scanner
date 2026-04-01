@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
+import * as fsPromises from "node:fs/promises";
 import { isFresh, readCache, writeCache } from "../cache";
 import type { CacheEntry } from "../cache";
 
@@ -85,18 +86,18 @@ describe("readCache", () => {
 
 describe("writeCache", () => {
   let writeSpy: ReturnType<typeof spyOn<typeof Bun, "write">>;
-  let shellSpy: ReturnType<typeof spyOn<typeof Bun, "$">>;
+  let renameSpy: ReturnType<typeof spyOn<typeof fsPromises, "rename">>;
 
   beforeEach(() => {
     writeSpy = spyOn(Bun, "write");
     writeSpy.mockResolvedValue(0);
-    shellSpy = spyOn(Bun, "$");
-    shellSpy.mockReturnValue({ quiet: async () => {} } as unknown as ReturnType<typeof Bun.$>);
+    renameSpy = spyOn(fsPromises, "rename");
+    renameSpy.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     writeSpy.mockRestore();
-    shellSpy.mockRestore();
+    renameSpy.mockRestore();
   });
 
   test("writes serialised cache to a temp file then renames it", async () => {
@@ -107,7 +108,7 @@ describe("writeCache", () => {
     const [path, content] = writeSpy.mock.calls[0] as unknown as [string, string];
     expect(path).toContain(".tmp");
     expect(JSON.parse(content)).toEqual(cache);
-    expect(shellSpy).toHaveBeenCalledTimes(1);
+    expect(renameSpy).toHaveBeenCalledTimes(1);
   });
 
   test("does not throw if write fails", async () => {

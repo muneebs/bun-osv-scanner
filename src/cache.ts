@@ -1,3 +1,4 @@
+import { rename } from 'node:fs/promises';
 import { CACHE_FILE, CACHE_TTL_MS } from './config';
 
 export interface CacheEntry {
@@ -33,7 +34,7 @@ export async function writeCache(cache: Cache): Promise<void> {
     // if the process is killed or two installs run concurrently.
     const tmp = `${CACHE_FILE}.tmp`;
     await Bun.write(tmp, JSON.stringify(cache, null, 2));
-    await Bun.$`mv ${tmp} ${CACHE_FILE}`.quiet();
+    await rename(tmp, CACHE_FILE);
   } catch {}
 }
 
