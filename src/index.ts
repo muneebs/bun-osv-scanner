@@ -5,7 +5,7 @@ const backend = (Bun.env.SCANNER_BACKEND ?? 'osv').toLowerCase();
 
 if (backend !== 'osv' && backend !== 'snyk') {
   process.stderr.write(
-    `[bun-security-scanner] Unknown SCANNER_BACKEND "${backend}", falling back to osv.\n`,
+    `[@nebzdev/bun-security-scanner] Unknown SCANNER_BACKEND "${backend}", falling back to osv.\n`,
   );
 }
 

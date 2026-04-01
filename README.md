@@ -1,6 +1,6 @@
 # bun-osv-scanner
 
-[![npm version](https://badge.fury.io/js/%40bun-security-scanner%2Fosv-os.svg)](https://badge.fury.io/js/%40bun-security-scanner%2Fosv-os)
+[![npm version](https://badge.fury.io/js/%40nebzdev%2Fbun-security-scanner.svg)](https://badge.fury.io/js/%40nebzdev%2Fbun-security-scanner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered by OSV](https://img.shields.io/badge/powered%20by-OSV-4285F4.svg)](https://osv.dev)
 
@@ -18,14 +18,14 @@ A [Bun security scanner](https://bun.com/docs/pm/security-scanner-api) that chec
 ## 📦 Installation
 
 ```sh
-bun add -d @bun-security-scanner/osv-os
+bun add -d @nebzdev/bun-security-scanner
 ```
 
 Then register it in your project's `bunfig.toml`:
 
 ```toml
 [install.security]
-scanner = "@bun-security-scanner/osv-os"
+scanner = "@nebzdev/bun-security-scanner"
 ```
 
 That's it. The scanner runs automatically on the next `bun install`.
@@ -51,7 +51,7 @@ Queries [Google's OSV database](https://osv.dev) — free, no credentials requir
 
 ```toml
 [install.security]
-scanner = "@bun-security-scanner/osv-os"
+scanner = "@nebzdev/bun-security-scanner"
 ```
 
 ### Snyk
@@ -61,7 +61,7 @@ Queries [Snyk's vulnerability database](https://security.snyk.io) — commercial
 ```toml
 # bunfig.toml
 [install.security]
-scanner = "@bun-security-scanner/osv-os"
+scanner = "@nebzdev/bun-security-scanner"
 ```
 
 ```sh
@@ -231,7 +231,7 @@ MIT © [Muneeb Samuels](https://github.com/muneebs)
 
 ## 🔗 Links
 
-- [📦 npm](https://www.npmjs.com/package/@bun-security-scanner/osv-os)
+- [📦 npm](https://www.npmjs.com/package/@nebzdev/bun-security-scanner)
 - [🐛 Issue tracker](https://github.com/muneebs/bun-osv-scanner/issues)
 - [🔍 OSV database](https://osv.dev)
 - [📖 Bun security scanner docs](https://bun.com/docs/pm/security-scanner-api)

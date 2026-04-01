@@ -1,5 +1,5 @@
 {
-  "name": "@bun-security-scanner/osv-os",
+  "name": "@nebzdev/bun-security-scanner",
   "description": "Bun security scanner powered by Google's OSV vulnerability database",
   "version": "1.0.0",
   "author": "Muneeb Samuels",
