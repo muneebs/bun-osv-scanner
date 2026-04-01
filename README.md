@@ -59,13 +59,16 @@ scanner = "@bun-security-scanner/osv-os"
 Queries [Snyk's vulnerability database](https://security.snyk.io) — commercial, often surfaces issues earlier. Requires a Snyk account.
 
 ```toml
+# bunfig.toml
 [install.security]
 scanner = "@bun-security-scanner/osv-os"
+```
 
-[install.env]
-SCANNER_BACKEND = "snyk"
-SNYK_TOKEN = "your-token"
-SNYK_ORG_ID = "your-org-id"
+```sh
+# .env
+SCANNER_BACKEND=snyk
+SNYK_TOKEN=your-token
+SNYK_ORG_ID=your-org-id
 ```
 
 ---
@@ -92,7 +95,7 @@ When `bun install` runs, Bun calls the scanner with the full list of packages to
 
 ## ⚙️ Configuration
 
-All options are set via environment variables, either in your shell or scoped to the project via `bunfig.toml`.
+All options are set via environment variables — in your shell, or in a `.env` file at the project root (Bun loads it automatically).
 
 ### Shared
 
@@ -129,13 +132,9 @@ All options are set via environment variables, either in your shell or scoped to
 
 By default the scanner **fails open**: if the backend is unreachable the scan is skipped and installation proceeds normally. Set `OSV_FAIL_CLOSED=true` or `SNYK_FAIL_CLOSED=true` to invert this.
 
-```toml
-# bunfig.toml — strict mode
-[install.security]
-scanner = "@bun-security-scanner/osv-os"
-
-[install.env]
-OSV_FAIL_CLOSED = "true"
+```sh
+# .env — strict mode
+OSV_FAIL_CLOSED=true
 ```
 
 ---
