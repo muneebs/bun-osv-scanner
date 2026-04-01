@@ -17,6 +17,7 @@
     "bun",
     "security",
     "osv",
+    "snyk",
     "scanner",
     "vulnerability"
   ],
