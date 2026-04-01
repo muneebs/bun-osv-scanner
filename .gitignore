@@ -37,5 +37,9 @@ Thumbs.db
 .idea/
 .claude/
 
+# Security scanner lock files (belong in consumer projects, not this repo)
+.osv.lock
+.snyk.lock
+
 # Optional local artifacts
 *.tgz

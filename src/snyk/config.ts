@@ -10,6 +10,5 @@ export const CONCURRENCY = Number(Bun.env.SNYK_CONCURRENCY) || 10;
 // Requests per minute — hard ceiling is 180; default leaves headroom
 export const RATE_LIMIT = Math.min(Number(Bun.env.SNYK_RATE_LIMIT) || 160, 180);
 
-const HOME = Bun.env.HOME ?? Bun.env.USERPROFILE;
-export const CACHE_FILE = `${HOME}/.cache/bun-snyk-scanner.json`;
+export const CACHE_FILE = Bun.env.SNYK_CACHE_FILE ?? '.snyk.lock';
 export const CACHE_TTL_MS = 24 * 60 * 60 * 1000;

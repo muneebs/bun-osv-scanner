@@ -86,6 +86,7 @@ All options are set via environment variables. They can be placed in your shell 
 |----------|---------|-------------|
 | `OSV_FAIL_CLOSED` | `false` | Throw on network error instead of failing open |
 | `OSV_NO_CACHE` | `false` | Always query OSV fresh, bypassing the local cache |
+| `OSV_CACHE_FILE` | `.osv.lock` | Path to the cache file |
 | `OSV_TIMEOUT_MS` | `10000` | Per-request timeout in milliseconds |
 | `OSV_API_BASE` | `https://api.osv.dev/v1` | OSV API base URL |
 
@@ -109,15 +110,17 @@ OSV_TIMEOUT_MS = "5000"
 
 ## 🗄️ Cache
 
-Results are cached per `package@version` at `~/.cache/bun-osv-scanner.json` with a 24-hour TTL. Because a published package version is immutable, its vulnerability profile is stable within that window.
+Results are cached per `package@version` in `.osv.lock` at the project root with a 24-hour TTL. Because a published package version is immutable, its vulnerability profile is stable within that window.
 
-To force a fresh scan, clear the cache:
+The file is designed to be **committed to git** — similar to a lockfile, committing it means your team and CI share the cache from day one without waiting for the first network scan.
+
+Add it to your repository:
 
 ```sh
-rm ~/.cache/bun-osv-scanner.json
+git add .osv.lock
 ```
 
-Or disable caching entirely for a single run:
+To force a fresh scan, delete the file or disable caching for a single run:
 
 ```sh
 OSV_NO_CACHE=true bun install
@@ -190,6 +193,7 @@ SNYK_ORG_ID = "your-org-id"
 | `SNYK_ORG_ID` | — | **Required.** Snyk organization ID |
 | `SNYK_FAIL_CLOSED` | `false` | Throw on network error instead of failing open |
 | `SNYK_NO_CACHE` | `false` | Always query Snyk fresh, bypassing the local cache |
+| `SNYK_CACHE_FILE` | `.snyk.lock` | Path to the cache file |
 | `SNYK_TIMEOUT_MS` | `10000` | Per-request timeout in milliseconds |
 | `SNYK_RATE_LIMIT` | `160` | Max requests per minute (hard cap: 180) |
 | `SNYK_CONCURRENCY` | `10` | Max concurrent connections |
