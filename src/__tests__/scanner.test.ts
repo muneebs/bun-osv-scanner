@@ -1,12 +1,5 @@
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import * as fsPromises from 'node:fs/promises';
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  spyOn,
-  test,
-} from 'bun:test';
 
 // Import the OSV backend directly — bypasses SCANNER_BACKEND env var so
 // this test always exercises the OSV scanner regardless of local .env config.
