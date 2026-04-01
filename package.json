@@ -15,6 +15,13 @@
     "scanner",
     "vulnerability"
   ],
+  "scripts": {
+    "lint": "biome lint ./src",
+    "format": "biome format ./src",
+    "format:write": "biome format --write ./src",
+    "check": "biome check ./src",
+    "check:write": "biome check --write ./src"
+  },
   "devDependencies": {
     "@biomejs/biome": "2.4.10",
     "@types/bun": "latest",
