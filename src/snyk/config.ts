@@ -5,8 +5,10 @@ export const SNYK_ORG_ID = Bun.env.SNYK_ORG_ID;
 export const FETCH_TIMEOUT_MS = Number(Bun.env.SNYK_TIMEOUT_MS) || 10_000;
 export const FAIL_CLOSED = Bun.env.SNYK_FAIL_CLOSED === 'true';
 export const NO_CACHE = Bun.env.SNYK_NO_CACHE === 'true';
-// Stay safely under the 180 req/min rate limit
-export const CONCURRENCY = Math.min(Number(Bun.env.SNYK_CONCURRENCY) || 30, 180);
+// Max concurrent connections (independent of rate limit)
+export const CONCURRENCY = Number(Bun.env.SNYK_CONCURRENCY) || 10;
+// Requests per minute — hard ceiling is 180; default leaves headroom
+export const RATE_LIMIT = Math.min(Number(Bun.env.SNYK_RATE_LIMIT) || 160, 180);
 
 const HOME = Bun.env.HOME ?? Bun.env.USERPROFILE;
 export const CACHE_FILE = `${HOME}/.cache/bun-snyk-scanner.json`;

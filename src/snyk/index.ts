@@ -38,7 +38,9 @@ export const scanner: Bun.Security.Scanner = {
     );
 
     try {
-      const issueMap = await batchFetchIssues(toQuery);
+      const issueMap = await batchFetchIssues(toQuery, (done, total) => {
+        spinner.update(`Scanning packages via Snyk (${done}/${total})...`);
+      });
 
       spinner.stop();
 

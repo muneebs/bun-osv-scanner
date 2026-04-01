@@ -191,7 +191,8 @@ SNYK_ORG_ID = "your-org-id"
 | `SNYK_FAIL_CLOSED` | `false` | Throw on network error instead of failing open |
 | `SNYK_NO_CACHE` | `false` | Always query Snyk fresh, bypassing the local cache |
 | `SNYK_TIMEOUT_MS` | `10000` | Per-request timeout in milliseconds |
-| `SNYK_CONCURRENCY` | `30` | Max parallel requests (hard cap: 180 to respect rate limit) |
+| `SNYK_RATE_LIMIT` | `160` | Max requests per minute (hard cap: 180) |
+| `SNYK_CONCURRENCY` | `10` | Max concurrent connections |
 | `SNYK_API_BASE` | `https://api.snyk.io/rest` | Regional endpoint override |
 | `SNYK_API_VERSION` | `2024-04-29` | Snyk REST API version date |
 
