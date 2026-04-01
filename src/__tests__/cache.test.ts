@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import * as fsPromises from "node:fs/promises";
 import { isFresh, readCache, writeCache } from "../cache";
 import type { CacheEntry } from "../cache";
@@ -45,7 +45,7 @@ describe("readCache", () => {
       },
     } as unknown as ReturnType<typeof Bun.file>);
 
-    expect(await readCache()).toEqual({});
+    expect(await readCache(".osv.lock")).toEqual({});
   });
 
   test("returns empty object when file contains invalid JSON", async () => {
@@ -53,7 +53,7 @@ describe("readCache", () => {
       text: async () => "not valid json {{",
     } as unknown as ReturnType<typeof Bun.file>);
 
-    expect(await readCache()).toEqual({});
+    expect(await readCache(".osv.lock")).toEqual({});
   });
 
   test("returns empty object when file contains valid JSON with wrong structure", async () => {
@@ -61,7 +61,7 @@ describe("readCache", () => {
       text: async () => JSON.stringify({ "lodash@4.17.4": "not-an-entry" }),
     } as unknown as ReturnType<typeof Bun.file>);
 
-    expect(await readCache()).toEqual({});
+    expect(await readCache(".osv.lock")).toEqual({});
   });
 
   test("returns empty object when file contains a JSON array", async () => {
@@ -69,7 +69,7 @@ describe("readCache", () => {
       text: async () => JSON.stringify([{ advisories: [], cachedAt: 0 }]),
     } as unknown as ReturnType<typeof Bun.file>);
 
-    expect(await readCache()).toEqual({});
+    expect(await readCache(".osv.lock")).toEqual({});
   });
 
   test("returns parsed cache on valid file", async () => {
@@ -79,7 +79,7 @@ describe("readCache", () => {
       text: async () => JSON.stringify(stored),
     } as unknown as ReturnType<typeof Bun.file>);
 
-    const cache = await readCache();
+    const cache = await readCache(".osv.lock");
     expect(cache["lodash@4.17.4"]?.cachedAt).toBe(now);
   });
 });
@@ -102,7 +102,7 @@ describe("writeCache", () => {
 
   test("writes serialised cache to a temp file then renames it", async () => {
     const cache = { "express@4.18.2": { advisories: [], cachedAt: 12345 } };
-    await writeCache(cache);
+    await writeCache(cache, ".osv.lock");
 
     expect(writeSpy).toHaveBeenCalledTimes(1);
     const [path, content] = writeSpy.mock.calls[0] as unknown as [string, string];
@@ -113,6 +113,6 @@ describe("writeCache", () => {
 
   test("does not throw if write fails", async () => {
     writeSpy.mockRejectedValue(new Error("EACCES"));
-    await expect(writeCache({})).resolves.toBeUndefined();
+    await expect(writeCache({}, ".osv.lock")).resolves.toBeUndefined();
   });
 });

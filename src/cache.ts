@@ -1,5 +1,5 @@
 import { rename } from 'node:fs/promises';
-import { CACHE_FILE, CACHE_TTL_MS } from './config';
+import { CACHE_TTL_MS } from './config';
 
 export interface CacheEntry {
   advisories: Bun.Security.Advisory[];
@@ -19,22 +19,22 @@ function isValidCache(data: unknown): data is Cache {
   );
 }
 
-export async function readCache(): Promise<Cache> {
+export async function readCache(cacheFile: string): Promise<Cache> {
   try {
-    const data: unknown = JSON.parse(await Bun.file(CACHE_FILE).text());
+    const data: unknown = JSON.parse(await Bun.file(cacheFile).text());
     return isValidCache(data) ? data : {};
   } catch {
     return {};
   }
 }
 
-export async function writeCache(cache: Cache): Promise<void> {
+export async function writeCache(cache: Cache, cacheFile: string): Promise<void> {
   try {
     // Write to a temp file first, then rename — prevents partial-write corruption
     // if the process is killed or two installs run concurrently.
-    const tmp = `${CACHE_FILE}.tmp`;
+    const tmp = `${cacheFile}.tmp`;
     await Bun.write(tmp, JSON.stringify(cache, null, 2));
-    await rename(tmp, CACHE_FILE);
+    await rename(tmp, cacheFile);
   } catch {}
 }
 

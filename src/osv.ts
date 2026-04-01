@@ -1,4 +1,4 @@
-import { FAIL_CLOSED, NO_CACHE } from './config';
+import { CACHE_FILE, FAIL_CLOSED, NO_CACHE } from './config';
 import { readCache, writeCache, isFresh } from './cache';
 import { isResolvable, batchQuery, fetchVuln } from './client';
 import { severityLevel, advisoryUrl } from './severity';
@@ -12,7 +12,7 @@ export const scanner: Bun.Security.Scanner = {
     const queryable = packages.filter((p) => p.name && isResolvable(p.version));
     if (queryable.length === 0) return [];
 
-    const cache = NO_CACHE ? {} : await readCache();
+    const cache = NO_CACHE ? {} : await readCache(CACHE_FILE);
 
     const cachedAdvisories: Bun.Security.Advisory[] = [];
     const toQuery: Bun.Security.Package[] = [];
@@ -84,7 +84,7 @@ export const scanner: Bun.Security.Scanner = {
       for (const [key, advisories] of freshByKey) {
         cache[key] = { advisories, cachedAt: Date.now() };
       }
-      if (!NO_CACHE) void writeCache(cache);
+      if (!NO_CACHE) void writeCache(cache, CACHE_FILE);
 
       return [...cachedAdvisories, ...[...freshByKey.values()].flat()];
     } catch (err) {
