@@ -1,4 +1,4 @@
-import { readCache, writeCache, isFresh } from './cache';
+import { isFresh, readCache, writeCache } from './cache';
 import { isResolvable } from './client';
 import { startSpinner } from './display';
 
@@ -10,7 +10,7 @@ export interface Backend {
   validateConfig?(): void;
   fetchAdvisories(
     packages: Bun.Security.Package[],
-    onStatus: (message: string) => void,
+    onStatus: (message: string) => void
   ): Promise<Map<string, Bun.Security.Advisory[]>>;
 }
 
@@ -21,7 +21,9 @@ export function createScanner(backend: Backend): Bun.Security.Scanner {
     async scan({ packages }) {
       backend.validateConfig?.();
 
-      const queryable = packages.filter((p) => p.name && isResolvable(p.version));
+      const queryable = packages.filter(
+        (p) => p.name && isResolvable(p.version)
+      );
       if (queryable.length === 0) return [];
 
       const cache = backend.noCache ? {} : await readCache(backend.cacheFile);
@@ -44,12 +46,12 @@ export function createScanner(backend: Backend): Bun.Security.Scanner {
       const spinner = startSpinner(
         hitCount > 0
           ? `Scanning ${toQuery.length} packages via ${backend.name} (${hitCount} cached)...`
-          : `Scanning ${queryable.length} packages via ${backend.name}...`,
+          : `Scanning ${queryable.length} packages via ${backend.name}...`
       );
 
       try {
         const advisoryMap = await backend.fetchAdvisories(toQuery, (msg) =>
-          spinner.update(msg),
+          spinner.update(msg)
         );
 
         spinner.stop();
@@ -65,12 +67,12 @@ export function createScanner(backend: Backend): Bun.Security.Scanner {
 
         if (backend.failClosed) {
           throw new Error(
-            `${backend.name} scan failed: ${err instanceof Error ? err.message : err}`,
+            `${backend.name} scan failed: ${err instanceof Error ? err.message : err}`
           );
         }
 
         process.stderr.write(
-          `\n${backend.name} scan failed (${err instanceof Error ? err.message : err}), skipping.\n`,
+          `\n${backend.name} scan failed (${err instanceof Error ? err.message : err}), skipping.\n`
         );
         return cachedAdvisories;
       }

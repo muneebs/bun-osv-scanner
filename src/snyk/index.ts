@@ -1,7 +1,7 @@
+import { type Backend, createScanner } from '../scanner';
+import { batchFetchIssues, validateConfig } from './client';
 import { CACHE_FILE, FAIL_CLOSED, NO_CACHE } from './config';
-import { validateConfig, batchFetchIssues } from './client';
-import { severityLevel, advisoryUrl } from './severity';
-import { createScanner, type Backend } from '../scanner';
+import { advisoryUrl, severityLevel } from './severity';
 
 const backend: Backend = {
   name: 'Snyk',
@@ -26,7 +26,7 @@ const backend: Backend = {
           package: pkg.name,
           url: advisoryUrl(issue),
           description: issue.attributes.title,
-        })),
+        }))
       );
     }
 

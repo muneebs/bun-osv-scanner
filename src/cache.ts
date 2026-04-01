@@ -10,13 +10,14 @@ export interface CacheEntry {
 type Cache = Record<string, CacheEntry>;
 
 function isValidCache(data: unknown): data is Cache {
-  if (typeof data !== 'object' || data === null || Array.isArray(data)) return false;
+  if (typeof data !== 'object' || data === null || Array.isArray(data))
+    return false;
   return Object.values(data).every(
     (entry) =>
       typeof entry === 'object' &&
       entry !== null &&
       Array.isArray((entry as CacheEntry).advisories) &&
-      typeof (entry as CacheEntry).cachedAt === 'number',
+      typeof (entry as CacheEntry).cachedAt === 'number'
   );
 }
 
@@ -29,7 +30,10 @@ export async function readCache(cacheFile: string): Promise<Cache> {
   }
 }
 
-export async function writeCache(cache: Cache, cacheFile: string): Promise<void> {
+export async function writeCache(
+  cache: Cache,
+  cacheFile: string
+): Promise<void> {
   try {
     // Write to a temp file first, then rename — prevents partial-write corruption
     // if the process is killed or two installs run concurrently.

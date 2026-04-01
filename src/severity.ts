@@ -1,5 +1,5 @@
-import { PREFERRED_REF_TYPES } from './config';
 import type { OsvVulnerability } from './client';
+import { PREFERRED_REF_TYPES } from './config';
 
 export function severityLevel(vuln: OsvVulnerability): 'fatal' | 'warn' {
   const s = vuln.database_specific?.severity?.toUpperCase();

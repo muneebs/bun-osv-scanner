@@ -11,7 +11,6 @@ export function startSpinner(message: string) {
     () => process.stderr.write(`\r${frames[++i % frames.length]} ${current}`),
     80
   );
-  
 
   return {
     update(msg: string) {

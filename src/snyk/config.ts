@@ -1,4 +1,5 @@
-export const SNYK_API_BASE = Bun.env.SNYK_API_BASE ?? 'https://api.snyk.io/rest';
+export const SNYK_API_BASE =
+  Bun.env.SNYK_API_BASE ?? 'https://api.snyk.io/rest';
 export const SNYK_API_VERSION = Bun.env.SNYK_API_VERSION ?? '2024-04-29';
 export const SNYK_TOKEN = Bun.env.SNYK_TOKEN;
 export const SNYK_ORG_ID = Bun.env.SNYK_ORG_ID;

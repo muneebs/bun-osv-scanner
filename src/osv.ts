@@ -1,8 +1,8 @@
-import { CACHE_FILE, FAIL_CLOSED, NO_CACHE } from './config';
-import { batchQuery, fetchVuln } from './client';
-import { severityLevel, advisoryUrl } from './severity';
-import { createScanner, type Backend } from './scanner';
 import type { OsvVulnerability } from './client';
+import { batchQuery, fetchVuln } from './client';
+import { CACHE_FILE, FAIL_CLOSED, NO_CACHE } from './config';
+import { type Backend, createScanner } from './scanner';
+import { advisoryUrl, severityLevel } from './severity';
 
 const backend: Backend = {
   name: 'OSV',
@@ -30,14 +30,14 @@ const backend: Backend = {
       const vulnById = new Map<string, OsvVulnerability>();
 
       onStatus(
-        `Fetching details for ${uniqueIds.length} ${uniqueIds.length === 1 ? 'vulnerability' : 'vulnerabilities'}...`,
+        `Fetching details for ${uniqueIds.length} ${uniqueIds.length === 1 ? 'vulnerability' : 'vulnerabilities'}...`
       );
 
       await Promise.all(
         uniqueIds.map(async (id) => {
           const vuln = await fetchVuln(id);
           if (vuln) vulnById.set(id, vuln);
-        }),
+        })
       );
 
       for (const { pkg, vulnId } of affected) {

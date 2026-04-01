@@ -1,11 +1,11 @@
 import {
+  CONCURRENCY,
+  FETCH_TIMEOUT_MS,
+  RATE_LIMIT,
   SNYK_API_BASE,
   SNYK_API_VERSION,
-  SNYK_TOKEN,
   SNYK_ORG_ID,
-  FETCH_TIMEOUT_MS,
-  CONCURRENCY,
-  RATE_LIMIT,
+  SNYK_TOKEN,
 } from './config';
 
 export interface SnykIssue {
@@ -33,7 +33,10 @@ class RateLimiter {
 
   async acquire(): Promise<void> {
     const now = Date.now();
-    while (this.timestamps.length > 0 && now - this.timestamps[0] >= this.windowMs) {
+    while (
+      this.timestamps.length > 0 &&
+      now - this.timestamps[0] >= this.windowMs
+    ) {
       this.timestamps.shift();
     }
     if (this.timestamps.length < this.limit) {
@@ -49,17 +52,22 @@ class RateLimiter {
 
 const rateLimiter = new RateLimiter(RATE_LIMIT);
 
-function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response> {
+function fetchWithTimeout(
+  url: string,
+  options?: RequestInit
+): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   return fetch(url, { ...options, signal: controller.signal }).finally(() =>
-    clearTimeout(timer),
+    clearTimeout(timer)
   );
 }
 
 export function validateConfig(): void {
-  if (!SNYK_TOKEN) throw new Error('SNYK_TOKEN is required for the Snyk scanner');
-  if (!SNYK_ORG_ID) throw new Error('SNYK_ORG_ID is required for the Snyk scanner');
+  if (!SNYK_TOKEN)
+    throw new Error('SNYK_TOKEN is required for the Snyk scanner');
+  if (!SNYK_ORG_ID)
+    throw new Error('SNYK_ORG_ID is required for the Snyk scanner');
 }
 
 function buildPurl(name: string, version: string): string {
@@ -76,7 +84,7 @@ function buildPurl(name: string, version: string): string {
 async function fetchPackageIssues(
   name: string,
   version: string,
-  retries = 3,
+  retries = 3
 ): Promise<SnykIssue[]> {
   await rateLimiter.acquire();
 
@@ -110,7 +118,7 @@ async function fetchPackageIssues(
 
 export async function batchFetchIssues(
   packages: Bun.Security.Package[],
-  onProgress?: (completed: number, total: number) => void,
+  onProgress?: (completed: number, total: number) => void
 ): Promise<Map<string, SnykIssue[]>> {
   const results = new Map<string, SnykIssue[]>();
   let completed = 0;
@@ -121,7 +129,7 @@ export async function batchFetchIssues(
         const issues = await fetchPackageIssues(pkg.name, pkg.version);
         results.set(`${pkg.name}@${pkg.version}`, issues);
         onProgress?.(++completed, packages.length);
-      }),
+      })
     );
   }
 

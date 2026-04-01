@@ -1,4 +1,4 @@
-import { OSV_API_BASE, OSV_BATCH_SIZE, FETCH_TIMEOUT_MS } from './config';
+import { FETCH_TIMEOUT_MS, OSV_API_BASE, OSV_BATCH_SIZE } from './config';
 
 export interface OsvBatchResponse {
   results: Array<{
