@@ -1,19 +1,12 @@
+import * as fsPromises from 'node:fs/promises';
 import {
   afterEach,
   beforeEach,
   describe,
   expect,
-  mock,
   spyOn,
   test,
 } from 'bun:test';
-
-// Mock the cache before the scanner modules are loaded so tests never touch the filesystem.
-mock.module('../cache', () => ({
-  readCache: async () => ({}),
-  writeCache: async () => {},
-  isFresh: () => false,
-}));
 
 // Import the OSV backend directly — bypasses SCANNER_BACKEND env var so
 // this test always exercises the OSV scanner regardless of local .env config.
@@ -57,13 +50,39 @@ function mockOsvResponses(
 
 describe('scanner.scan', () => {
   let fetchSpy: ReturnType<typeof spyOn<typeof globalThis, 'fetch'>>;
+  let fileSpy: ReturnType<typeof spyOn<typeof Bun, 'file'>>;
+  let writeSpy: ReturnType<typeof spyOn<typeof Bun, 'write'>>;
+  let renameSpy: ReturnType<typeof spyOn<typeof fsPromises, 'rename'>>;
 
   beforeEach(() => {
     fetchSpy = spyOn(globalThis, 'fetch');
+    // Make cache reads return empty (no cached data) without touching the filesystem.
+    // Use mockImplementation (not mockReturnValue) so that fd-based Bun.file calls
+    // (e.g. the internal WriteStream used by process.stderr) still pass through.
+    const origBunFile = Bun.file.bind(Bun);
+    fileSpy = spyOn(Bun, 'file');
+    fileSpy.mockImplementation(((path: unknown, opts?: BlobPropertyBag) => {
+      if (typeof path === 'string') {
+        return {
+          text: async () => {
+            throw new Error('ENOENT');
+          },
+        } as unknown as ReturnType<typeof Bun.file>;
+      }
+      return origBunFile(path as Parameters<typeof Bun.file>[0], opts);
+    }) as typeof Bun.file);
+    // Suppress cache writes.
+    writeSpy = spyOn(Bun, 'write');
+    writeSpy.mockResolvedValue(0);
+    renameSpy = spyOn(fsPromises, 'rename');
+    renameSpy.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     fetchSpy.mockRestore();
+    fileSpy.mockRestore();
+    writeSpy.mockRestore();
+    renameSpy.mockRestore();
   });
 
   test('returns empty array when no packages provided', async () => {
