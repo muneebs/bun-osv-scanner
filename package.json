@@ -8,6 +8,11 @@
     "./package.json": "./package.json",
     ".": "./src/index.ts"
   },
+  "files": [
+    "src",
+    "!src/__tests__",
+    "README.md"
+  ],
   "keywords": [
     "bun",
     "security",
@@ -16,6 +21,7 @@
     "vulnerability"
   ],
   "scripts": {
+    "publish:npm": "npm publish --access public",
     "lint": "biome lint ./src",
     "format": "biome format ./src",
     "format:write": "biome format --write ./src",
