@@ -272,20 +272,59 @@ reason = "transitive only"
     renameSpy.mockRestore();
   });
 
-  test('downgrades fatal advisory to warn when matched by ignore file', async () => {
-    mockOsvResponses(
-      fetchSpy,
-      ['GHSA-aaa-bbb-cccc'],
-      [makeOsvVuln('GHSA-aaa-bbb-cccc', 'HIGH', 'Prototype Pollution')]
-    );
+  test('drops fatal advisory in non-interactive mode when matched by ignore file', async () => {
+    const origCI = process.env.CI;
+    process.env.CI = 'true';
+    try {
+      mockOsvResponses(
+        fetchSpy,
+        ['GHSA-aaa-bbb-cccc'],
+        [makeOsvVuln('GHSA-aaa-bbb-cccc', 'HIGH', 'Prototype Pollution')]
+      );
 
-    const advisories = await scanner.scan({
-      packages: [pkg('lodash', '4.17.4')],
+      const advisories = await scanner.scan({
+        packages: [pkg('lodash', '4.17.4')],
+      });
+
+      // CI mode: ignored fatal is dropped so the install proceeds.
+      expect(advisories).toHaveLength(0);
+    } finally {
+      if (origCI === undefined) delete process.env.CI;
+      else process.env.CI = origCI;
+    }
+  });
+
+  test('downgrades fatal advisory to warn in interactive mode when matched by ignore file', async () => {
+    const origCI = process.env.CI;
+    // Simulate an interactive terminal session.
+    process.env.CI = 'false';
+    Object.defineProperty(process.stdin, 'isTTY', {
+      value: true,
+      configurable: true,
     });
 
-    expect(advisories).toHaveLength(1);
-    expect(advisories[0]?.level).toBe('warn');
-    expect(advisories[0]?.package).toBe('lodash');
+    try {
+      mockOsvResponses(
+        fetchSpy,
+        ['GHSA-aaa-bbb-cccc'],
+        [makeOsvVuln('GHSA-aaa-bbb-cccc', 'HIGH', 'Prototype Pollution')]
+      );
+
+      const advisories = await scanner.scan({
+        packages: [pkg('lodash', '4.17.4')],
+      });
+
+      expect(advisories).toHaveLength(1);
+      expect(advisories[0]?.level).toBe('warn');
+      expect(advisories[0]?.package).toBe('lodash');
+    } finally {
+      if (origCI === undefined) delete process.env.CI;
+      else process.env.CI = origCI;
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: undefined,
+        configurable: true,
+      });
+    }
   });
 
   test('drops warn advisory when matched by ignore file', async () => {

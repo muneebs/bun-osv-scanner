@@ -93,15 +93,22 @@ export function createScanner(backend: Backend): Bun.Security.Scanner {
 
 /**
  * Apply the ignore list to a set of advisories:
- * - `fatal` advisories that are ignored are downgraded to `warn`
- * - `warn` advisories that are ignored are dropped entirely
- * - Both cases are logged to stderr so they remain visible in CI output
+ * - `fatal` advisories that are ignored are downgraded to `warn` in
+ *   interactive sessions so the user can make a final call.
+ * - In non-interactive / CI environments (process.env.CI or no stdin TTY),
+ *   ignored `fatal` advisories are dropped entirely — downgrading to `warn`
+ *   would still auto-cancel the install in CI, defeating the ignore file.
+ * - `warn` advisories that are ignored are always dropped.
+ * - All suppressions are logged to stderr for visibility regardless of mode.
  */
 function applyIgnores(
   advisories: Bun.Security.Advisory[],
   ignoreList: IgnoreList
 ): Bun.Security.Advisory[] {
   if (ignoreList.entries.length === 0) return advisories;
+
+  const interactive =
+    process.env.CI !== 'true' && (process.stdin?.isTTY ?? false);
 
   const result: Bun.Security.Advisory[] = [];
 
@@ -110,13 +117,13 @@ function applyIgnores(
 
     if (decision.action === 'keep') {
       result.push(advisory);
-    } else if (decision.action === 'downgrade') {
+    } else if (decision.action === 'downgrade' && interactive) {
       process.stderr.write(
         `[@nebzdev/bun-security-scanner] Downgrading ${advisory.package} fatal advisory to warn (${advisory.url}) — ${decision.reason}\n`
       );
       result.push({ ...advisory, level: 'warn' });
     } else {
-      // drop
+      // drop: warn advisories always, fatal advisories in CI/non-interactive
       process.stderr.write(
         `[@nebzdev/bun-security-scanner] Suppressing ${advisory.package} advisory (${advisory.url}) — ${decision.reason}\n`
       );
