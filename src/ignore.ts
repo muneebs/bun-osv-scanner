@@ -88,23 +88,33 @@ function parseIgnoreToml(source: string): IgnoreEntry[] {
 export async function loadIgnoreList(): Promise<IgnoreList> {
   if (NO_IGNORE) return { entries: [] };
 
+  let text: string;
   try {
-    const text = await Bun.file(IGNORE_FILE).text();
-    const entries = parseIgnoreToml(text);
-
-    for (const entry of entries) {
-      if (!entry.reason) {
-        process.stderr.write(
-          `[@nebzdev/bun-security-scanner] Warning: ignore entry for "${entry.package}" has no reason — consider documenting why.\n`
-        );
-      }
-    }
-
-    return { entries };
+    text = await Bun.file(IGNORE_FILE).text();
   } catch {
-    // File doesn't exist or can't be read — that's fine
+    // File doesn't exist — that's fine
     return { entries: [] };
   }
+
+  let entries: IgnoreEntry[];
+  try {
+    entries = parseIgnoreToml(text);
+  } catch (err) {
+    process.stderr.write(
+      `[@nebzdev/bun-security-scanner] Warning: failed to parse "${IGNORE_FILE}" — ${err instanceof Error ? err.message : err}. All ignore entries will be skipped.\n`
+    );
+    return { entries: [] };
+  }
+
+  for (const entry of entries) {
+    if (!entry.reason) {
+      process.stderr.write(
+        `[@nebzdev/bun-security-scanner] Warning: ignore entry for "${entry.package}" has no reason — consider documenting why.\n`
+      );
+    }
+  }
+
+  return { entries };
 }
 
 // ── Matcher ───────────────────────────────────────────────────────────────────

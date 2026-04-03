@@ -227,6 +227,7 @@ The ignore file should be committed alongside your lockfile. It documents delibe
 git clone https://github.com/muneebs/bun-security-scanner.git
 cd bun-security-scanner
 bun install
+bunx lefthook install
 ```
 
 ### Local development

@@ -17,28 +17,28 @@
 #         - security
 #       run: bundle audit
 #
- pre-push:
-   parallel: true
-   jobs:
-     - name: packages audit
-       tags:
-         - security
-       run: bun audit
-       glob: "bun.lock"
- pre-commit:
-   parallel: true
-   fail_on_changes: "always"
-   jobs:
-     - name: format
-       run: bunx biome format --write {staged_files}
-       glob: "*.{js,ts,jsx,tsx}"
-       stage_fixed: true
-     - name: lint
-       run: bunx biome lint {staged_files}
-       glob: "*.{js,ts,jsx,tsx}"
-     - name: type-check
-       run: bun type-check
-       glob: "*.{js,ts,jsx,tsx}"
-     - name: test
-       run: bun test
-       glob: "*.{js,ts,jsx,tsx}"
+pre-push:
+  parallel: true
+  jobs:
+    - name: packages audit
+      tags:
+        - security
+      run: bun audit
+      glob: "bun.lock"
+pre-commit:
+  parallel: true
+  fail_on_changes: "always"
+  jobs:
+    - name: format
+      run: bunx biome format --write {staged_files}
+      glob: "*.{js,ts,jsx,tsx}"
+      stage_fixed: true
+    - name: lint
+      run: bunx biome lint {staged_files}
+      glob: "*.{js,ts,jsx,tsx}"
+    - name: type-check
+      run: bun type-check
+      glob: "*.{js,ts,jsx,tsx}"
+    - name: test
+      run: bun test
+      glob: "*.{js,ts,jsx,tsx}"
