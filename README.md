@@ -182,7 +182,7 @@ Not every advisory is actionable. A vulnerability may affect a code path your pr
 package    = "lodash"
 advisories = ["GHSA-35jh-r3h4-6jhm"]
 reason     = "Only affects the cloneDeep path, which we do not use."
-expires    = "2025-12-31"   # optional -- re-surfaces automatically after this date
+expires    = "2026-12-31"   # optional -- re-surfaces automatically after this date
 
 [[ignore]]
 package    = "minimist"
