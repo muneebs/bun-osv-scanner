@@ -7,17 +7,17 @@
 
 A [Bun security scanner](https://bun.com/docs/pm/security-scanner-api) that checks your dependencies against vulnerability databases before they get installed. Uses [Google's OSV database](https://osv.dev) by default — no API keys required.
 
-- Runs transparently on every `bun install`
-- Per-package lockfile cache (24h by default, configurable) means repeat installs skip the network entirely
-- Two backends: OSV (free, no setup) or Snyk (commercial, broader coverage)
-- Fails open by default, so a downed API never blocks your install
-- Falls back to CVSS score-based severity when a label isn't available
-- Supports a `.bun-security-ignore` file for false positives and accepted risks
-- Behaviour is tunable via environment variables
+- 🔍 **Automatic scanning**: runs transparently on every `bun install`
+- ⚡ **Fast**: per-package lockfile cache (24h by default, configurable) means repeat installs skip the network entirely
+- 🔀 **Two backends**: OSV (free, no setup) or Snyk (commercial, broader coverage)
+- 🔒 **Fail-open by default**: a downed API never blocks your install
+- 🎯 **CVSS fallback**: falls back to score-based severity when a label isn't available
+- 🙈 **Ignore file**: suppress false positives and accepted risks with `.bun-security-ignore`
+- ⚙️ **Configurable**: tune behaviour via environment variables
 
 ---
 
-## Installation
+## 📦 Installation
 
 ```sh
 bun add -d @nebzdev/bun-security-scanner
@@ -34,7 +34,7 @@ That's it. The scanner runs automatically on the next `bun install`.
 
 ---
 
-## Backends
+## 🔀 Backends
 
 The scanner ships with two backends, controlled by the `SCANNER_BACKEND` environment variable.
 
@@ -66,7 +66,7 @@ SNYK_ORG_ID=your-org-id
 
 ---
 
-## How it works
+## 🛡️ How it works
 
 When `bun install` runs, Bun calls the scanner with the full list of packages to be installed. The scanner:
 
@@ -77,7 +77,7 @@ When `bun install` runs, Bun calls the scanner with the full list of packages to
 
 ---
 
-## Advisory levels
+## ⚠️ Advisory levels
 
 | Level | Trigger | Bun behaviour |
 |-------|---------|---------------|
@@ -86,7 +86,7 @@ When `bun install` runs, Bun calls the scanner with the full list of packages to
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 All options are set via environment variables — in your shell, or in a `.env` file at the project root (Bun loads it automatically).
 
@@ -124,7 +124,7 @@ All options are set via environment variables — in your shell, or in a `.env` 
 | `SNYK_API_BASE` | `https://api.snyk.io/rest` | Regional endpoint override |
 | `SNYK_API_VERSION` | `2024-04-29` | Snyk REST API version date |
 
-### Ignore file
+### 🙈 Ignore file
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -142,7 +142,7 @@ OSV_FAIL_CLOSED=true
 
 ---
 
-## Cache
+## 🗄️ Cache
 
 Results are cached per `package@version` in a lock file at the project root. Because a published package version is immutable, its vulnerability profile is stable within the cache window.
 
@@ -175,7 +175,7 @@ SNYK_NO_CACHE=true bun install
 
 ---
 
-## Ignore file
+## 🙈 Ignore file
 
 Not every advisory is actionable. A vulnerability may affect a code path your project doesn't use, have no fix available yet, or be a false positive. The `.bun-security-ignore` file lets you acknowledge these cases without blocking installs permanently.
 
@@ -217,7 +217,7 @@ The ignore file should be committed alongside your lockfile. It documents delibe
 
 ---
 
-## Development
+## 🛠️ Development
 
 ### Setup
 
@@ -279,7 +279,7 @@ bun-osv-scanner/
 
 ---
 
-## Limitations
+## ⚠️ Limitations
 
 - Only scans npm packages with concrete semver versions. `workspace:`, `file:`, `git:`, and range-only specifiers are skipped.
 - OSV aggregates GitHub Advisory, NVD, and other feeds, so coverage may lag slightly behind a vulnerability's public disclosure.
@@ -288,15 +288,15 @@ bun-osv-scanner/
 
 ---
 
-## License
+## 📄 License
 
 MIT © [Muneeb Samuels](https://github.com/muneebs)
 
 ---
 
-## Links
+## 🔗 Links
 
-- [npm](https://www.npmjs.com/package/@nebzdev/bun-security-scanner)
-- [Issue tracker](https://github.com/muneebs/bun-osv-scanner/issues)
-- [OSV database](https://osv.dev)
-- [Bun security scanner docs](https://bun.com/docs/pm/security-scanner-api)
+- [📦 npm](https://www.npmjs.com/package/@nebzdev/bun-security-scanner)
+- [🐛 Issue tracker](https://github.com/muneebs/bun-osv-scanner/issues)
+- [🔍 OSV database](https://osv.dev)
+- [📖 Bun security scanner docs](https://bun.com/docs/pm/security-scanner-api)
