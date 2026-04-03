@@ -40,6 +40,24 @@ export const NO_IGNORE = Bun.env.OSV_NO_IGNORE === 'true';
 
 // ── Parser ────────────────────────────────────────────────────────────────────
 
+/** Remove text after the first # that is not inside a quoted string. */
+function stripInlineComment(val: string): string {
+  let inStr = false;
+  let q = '';
+  for (let i = 0; i < val.length; i++) {
+    const c = val[i];
+    if (inStr) {
+      if (c === q) inStr = false;
+    } else if (c === '"' || c === "'") {
+      inStr = true;
+      q = c;
+    } else if (c === '#') {
+      return val.slice(0, i).trimEnd();
+    }
+  }
+  return val;
+}
+
 /**
  * Minimal TOML parser for the [[ignore]] array-of-tables format.
  * Only handles the subset of TOML used by `.bun-security-ignore`.
@@ -48,13 +66,22 @@ function parseIgnoreToml(source: string): IgnoreEntry[] {
   const entries: IgnoreEntry[] = [];
   let current: Partial<IgnoreEntry> | null = null;
 
+  const pushCurrent = () => {
+    if (current?.package) {
+      entries.push({
+        ...current,
+        advisories: current.advisories ?? [],
+      } as IgnoreEntry);
+    }
+  };
+
   for (const rawLine of source.split('\n')) {
     const line = rawLine.trim();
 
     if (line === '' || line.startsWith('#')) continue;
 
     if (line === '[[ignore]]') {
-      if (current) entries.push(current as IgnoreEntry);
+      pushCurrent();
       current = {};
       continue;
     }
@@ -65,7 +92,7 @@ function parseIgnoreToml(source: string): IgnoreEntry[] {
     if (eqIdx === -1) continue;
 
     const key = line.slice(0, eqIdx).trim();
-    const rawVal = line.slice(eqIdx + 1).trim();
+    const rawVal = stripInlineComment(line.slice(eqIdx + 1).trim());
 
     if (key === 'package' || key === 'reason' || key === 'expires') {
       // Unquoted or single/double-quoted string
@@ -81,7 +108,7 @@ function parseIgnoreToml(source: string): IgnoreEntry[] {
     }
   }
 
-  if (current?.package) entries.push(current as IgnoreEntry);
+  pushCurrent();
 
   return entries;
 }
