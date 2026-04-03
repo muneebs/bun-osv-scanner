@@ -124,13 +124,6 @@ All options are set via environment variables — in your shell, or in a `.env` 
 | `SNYK_API_BASE` | `https://api.snyk.io/rest` | Regional endpoint override |
 | `SNYK_API_VERSION` | `2024-04-29` | Snyk REST API version date |
 
-### 🙈 Ignore file
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BUN_SECURITY_IGNORE_FILE` | `.bun-security-ignore` | Path to the ignore file |
-| `OSV_NO_IGNORE` | `false` | Disable all ignore file processing |
-
 ### Fail-open vs fail-closed
 
 By default the scanner fails open: if the backend is unreachable the scan is skipped and installation proceeds normally. Set `OSV_FAIL_CLOSED=true` or `SNYK_FAIL_CLOSED=true` to invert this.
@@ -210,6 +203,13 @@ Both cases are logged to stderr so they remain visible in CI output. Ignored adv
 - `reason` -- encouraged but not required; a notice is printed to stderr if omitted
 - `OSV_NO_IGNORE=true` -- disables all ignore file processing for strict environments
 - `BUN_SECURITY_IGNORE_FILE` -- override the default `.bun-security-ignore` path
+
+### Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BUN_SECURITY_IGNORE_FILE` | `.bun-security-ignore` | Path to the ignore file |
+| `OSV_NO_IGNORE` | `false` | Disable all ignore file processing |
 
 ### Committing the file
 
