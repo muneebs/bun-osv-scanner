@@ -40,75 +40,42 @@ export const NO_IGNORE = Bun.env.OSV_NO_IGNORE === 'true';
 
 // ── Parser ────────────────────────────────────────────────────────────────────
 
-/** Remove text after the first # that is not inside a quoted string. */
-function stripInlineComment(val: string): string {
-  let inStr = false;
-  let q = '';
-  for (let i = 0; i < val.length; i++) {
-    const c = val[i];
-    if (inStr) {
-      if (c === q) inStr = false;
-    } else if (c === '"' || c === "'") {
-      inStr = true;
-      q = c;
-    } else if (c === '#') {
-      return val.slice(0, i).trimEnd();
-    }
-  }
-  return val;
-}
-
 /**
- * Minimal TOML parser for the [[ignore]] array-of-tables format.
- * Only handles the subset of TOML used by `.bun-security-ignore`.
+ * Parse `.bun-security-ignore` using Bun's built-in TOML parser.
+ * Handles the full TOML spec (inline comments, multiline strings, dates, etc.).
  */
 function parseIgnoreToml(source: string): IgnoreEntry[] {
+  const parsed = Bun.TOML.parse(source) as Record<string, unknown>;
+  const raw = parsed['ignore'];
+  if (!Array.isArray(raw)) return [];
+
   const entries: IgnoreEntry[] = [];
-  let current: Partial<IgnoreEntry> | null = null;
 
-  const pushCurrent = () => {
-    if (current?.package) {
-      entries.push({
-        ...current,
-        advisories: current.advisories ?? [],
-      } as IgnoreEntry);
+  for (const item of raw) {
+    if (typeof item !== 'object' || item === null) continue;
+    const row = item as Record<string, unknown>;
+
+    if (typeof row['package'] !== 'string' || !row['package']) continue;
+
+    const advisories = Array.isArray(row['advisories'])
+      ? (row['advisories'] as unknown[]).filter(
+          (a): a is string => typeof a === 'string'
+        )
+      : [];
+
+    const entry: IgnoreEntry = { package: row['package'], advisories };
+
+    if (typeof row['reason'] === 'string') entry.reason = row['reason'];
+
+    // `expires` may be a quoted string or a bare TOML local date (parsed as Date).
+    if (typeof row['expires'] === 'string') {
+      entry.expires = row['expires'];
+    } else if (row['expires'] instanceof Date) {
+      entry.expires = row['expires'].toISOString().slice(0, 10);
     }
-  };
 
-  for (const rawLine of source.split('\n')) {
-    const line = rawLine.trim();
-
-    if (line === '' || line.startsWith('#')) continue;
-
-    if (line === '[[ignore]]') {
-      pushCurrent();
-      current = {};
-      continue;
-    }
-
-    if (!current) continue;
-
-    const eqIdx = line.indexOf('=');
-    if (eqIdx === -1) continue;
-
-    const key = line.slice(0, eqIdx).trim();
-    const rawVal = stripInlineComment(line.slice(eqIdx + 1).trim());
-
-    if (key === 'package' || key === 'reason' || key === 'expires') {
-      // Unquoted or single/double-quoted string
-      const str = rawVal.replace(/^["']|["']$/g, '');
-      (current as Record<string, string>)[key] = str;
-    } else if (key === 'advisories') {
-      // Inline array: ["GHSA-xxx", "CVE-yyy"] or ["*"]
-      const inner = rawVal.replace(/^\[|\]$/g, '');
-      current.advisories = inner
-        .split(',')
-        .map((s) => s.trim().replace(/^["']|["']$/g, ''))
-        .filter(Boolean);
-    }
+    entries.push(entry);
   }
-
-  pushCurrent();
 
   return entries;
 }
