@@ -48,7 +48,7 @@ export function createScanner(backend: Backend): Bun.Security.Scanner {
       }
 
       if (toQuery.length === 0)
-        return applyIgnores(cachedAdvisories, ignoreList);
+        return stripNonBlockingInCI(applyIgnores(cachedAdvisories, ignoreList));
 
       const hitCount = queryable.length - toQuery.length;
       const spinner = startSpinner(
@@ -69,9 +69,11 @@ export function createScanner(backend: Backend): Bun.Security.Scanner {
         }
         if (!backend.noCache) void writeCache(cache, backend.cacheFile);
 
-        return applyIgnores(
-          [...cachedAdvisories, ...[...advisoryMap.values()].flat()],
-          ignoreList
+        return stripNonBlockingInCI(
+          applyIgnores(
+            [...cachedAdvisories, ...[...advisoryMap.values()].flat()],
+            ignoreList
+          )
         );
       } catch (err) {
         spinner.stop();
@@ -85,10 +87,34 @@ export function createScanner(backend: Backend): Bun.Security.Scanner {
         process.stderr.write(
           `\n${backend.name} scan failed (${err instanceof Error ? err.message : err}), skipping.\n`
         );
-        return applyIgnores(cachedAdvisories, ignoreList);
+        return stripNonBlockingInCI(applyIgnores(cachedAdvisories, ignoreList));
       }
     },
   };
+}
+
+/**
+ * In CI / non-interactive sessions, Bun still prompts ("Continue anyway? [y/N]")
+ * for `warn`-level advisories — which hangs or fails the install. Drop them from
+ * the returned set (logging to stderr) so only `fatal` advisories block.
+ * Interactive sessions keep `warn` so the user can see and decide.
+ */
+function stripNonBlockingInCI(
+  advisories: Bun.Security.Advisory[]
+): Bun.Security.Advisory[] {
+  const interactive =
+    process.env.CI !== 'true' && (process.stdin?.isTTY ?? false);
+  if (interactive) return advisories;
+
+  return advisories.filter((advisory) => {
+    if (advisory.level === 'warn') {
+      process.stderr.write(
+        `[@nebzdev/bun-security-scanner] WARN ${advisory.package}: ${advisory.description ?? ''} (${advisory.url})\n`
+      );
+      return false;
+    }
+    return true;
+  });
 }
 
 /**
