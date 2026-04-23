@@ -46,8 +46,23 @@ describe('scanner.scan', () => {
   let fileSpy: ReturnType<typeof spyOn<typeof Bun, 'file'>>;
   let writeSpy: ReturnType<typeof spyOn<typeof Bun, 'write'>>;
   let renameSpy: ReturnType<typeof spyOn<typeof fsPromises, 'rename'>>;
+  let origCI: string | undefined;
+  let origIsTTYDescriptor: PropertyDescriptor | undefined;
 
   beforeEach(() => {
+    // Force interactive mode for the default suite so warn-level advisories
+    // are returned (Bun would otherwise hang on the "Continue?" prompt in CI).
+    origCI = process.env.CI;
+    origIsTTYDescriptor = Object.getOwnPropertyDescriptor(
+      process.stdin,
+      'isTTY'
+    );
+    process.env.CI = 'false';
+    Object.defineProperty(process.stdin, 'isTTY', {
+      value: true,
+      configurable: true,
+    });
+
     fetchSpy = spyOn(globalThis, 'fetch');
     // Make cache reads return empty (no cached data) without touching the filesystem.
     // Use mockImplementation (not mockReturnValue) so that fd-based Bun.file calls
@@ -76,6 +91,16 @@ describe('scanner.scan', () => {
     fileSpy.mockRestore();
     writeSpy.mockRestore();
     renameSpy.mockRestore();
+    if (origCI === undefined) delete process.env.CI;
+    else process.env.CI = origCI;
+    if (origIsTTYDescriptor) {
+      Object.defineProperty(process.stdin, 'isTTY', origIsTTYDescriptor);
+    } else {
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: undefined,
+        configurable: true,
+      });
+    }
   });
 
   test('returns empty array when no packages provided', async () => {
@@ -152,6 +177,42 @@ describe('scanner.scan', () => {
     });
 
     expect(advisory?.level).toBe(expectedLevel);
+  });
+
+  test('drops warn-level advisories in non-interactive mode (Bun would otherwise prompt and hang)', async () => {
+    process.env.CI = 'true';
+    Object.defineProperty(process.stdin, 'isTTY', {
+      value: false,
+      configurable: true,
+    });
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          results: [
+            { vulns: [{ id: 'GHSA-warn', modified: '' }] },
+            { vulns: [{ id: 'GHSA-fatal', modified: '' }] },
+          ],
+        })
+      )
+    );
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(makeOsvVuln('GHSA-warn', 'LOW', 'Low vuln')))
+    );
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify(makeOsvVuln('GHSA-fatal', 'CRITICAL', 'Crit vuln'))
+      )
+    );
+
+    const advisories = await scanner.scan({
+      packages: [pkg('pkg-warn', '1.0.0'), pkg('pkg-fatal', '2.0.0')],
+    });
+
+    // Warn dropped (logged to stderr); fatal kept so it still blocks.
+    expect(advisories).toHaveLength(1);
+    expect(advisories[0]?.level).toBe('fatal');
+    expect(advisories[0]?.package).toBe('pkg-fatal');
   });
 
   test('returns advisories for multiple vulnerable packages', async () => {
