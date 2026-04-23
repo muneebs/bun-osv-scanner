@@ -96,7 +96,10 @@ describe('scanner.scan', () => {
     if (origIsTTYDescriptor) {
       Object.defineProperty(process.stdin, 'isTTY', origIsTTYDescriptor);
     } else {
-      (process.stdin as { isTTY?: boolean }).isTTY = undefined;
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: undefined,
+        configurable: true,
+      });
     }
   });
 
